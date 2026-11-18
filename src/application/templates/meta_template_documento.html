@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>META RELOGIO</title>
+<style>
+body {
+  margin: 0;
+  padding: 10px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  color: #111111;
+}
+
+#print-area {
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.report {
+  min-width: 2120px;
+}
+
+.hero {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.hero-title {
+  flex: 1;
+  background: #000000;
+  color: #ffffff;
+  border-bottom: 5px solid #ffe573;
+  padding: 18px 24px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.45em;
+  text-align: center;
+}
+
+.hero-side {
+  width: 240px;
+  background: #f1f1f1;
+  border: 1px solid #d5d5d5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 12px 16px;
+}
+
+.hero-side img {
+  max-height: 44px;
+  max-width: 92px;
+  object-fit: contain;
+}
+
+.section {
+  margin-bottom: 14px;
+}
+
+.section-title {
+  background: #e6e6e6;
+  color: #111111;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-left: 4px solid #000000;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+col.phase { width: 95px; }
+col.range { width: 150px; }
+col.contracts { width: 90px; }
+col.balance { width: 150px; }
+col.tkm { width: 92px; }
+col.pct { width: 82px; }
+col.value { width: 96px; }
+col.money { width: 118px; }
+
+thead tr.group-row th {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 6px;
+  text-transform: uppercase;
+}
+
+thead tr.sub-row th {
+  background: #efefef;
+  color: #111111;
+  border: 1px solid #cfcfcf;
+  border-bottom: 3px solid #ffe573;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 7px 5px;
+}
+
+tbody td {
+  border: 1px solid #d7d7d7;
+  padding: 6px 6px;
+  font-size: 10px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+tbody tr:nth-child(even) td {
+  background: #f5f5f5;
+}
+
+td.phase-cell {
+  background: #e6e6e6 !important;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+td.range-cell {
+  text-align: left;
+  padding-left: 10px;
+}
+
+td.realizado {
+  background: #ffe573 !important;
+  font-weight: 700;
+}
+
+td.icm {
+  font-weight: 700;
+}
+
+td.icm.up {
+  color: #1f8b4c;
+}
+
+td.icm.down {
+  color: #c0392b;
+}
+
+tr.total-row td {
+  background: #d9d9d9 !important;
+  font-weight: 700;
+}
+
+tr.total-row td.realizado {
+  background: #ffe573 !important;
+}
+</style>
+</head>
+<body>
+{% macro icm_cell(value) -%}
+  <td class="icm {{ value | icm_class }}">
+    {% if value | icm_class == "up" %}▲{% elif value | icm_class == "down" %}▼{% endif %}
+    {{ value | fmt_percent }}
+  </td>
+{%- endmacro %}
+
+{% macro data_row(row, phase_label="", phase_rowspan=0, show_phase=False, total=False) -%}
+<tr class="{% if total %}total-row{% endif %}">
+  {% if show_phase %}
+  <td class="phase-cell" rowspan="{{ phase_rowspan }}">{{ phase_label }}</td>
+  {% endif %}
+  <td class="range-cell">
+    {% set faixa = row.FAIXA_ATRASO | default("TOTAL FASE 1 e 2") %}
+    {{ "TOTAL" if faixa.startswith("TOTAL FASE") else faixa }}
+  </td>
+  <td>{{ row.CONTRATOS | fmt_int }}</td>
+  <td>{{ row.CARTEIRA | fmt_money }}</td>
+  <td>{{ row.TICKET_MEDIO | fmt_money }}</td>
+  <td>{{ row.ELEGIVEL | fmt_percent(2, true) }}</td>
+  <td>{{ row.MAILING | fmt_int }}</td>
+  <td>{{ row.TRABALHADO | fmt_int }}</td>
+  <td>{{ row.PENETRACAO | fmt_percent(2, true) }}</td>
+  <td>{{ row.META_DISCAGEM | fmt_int }}</td>
+  <td class="realizado">{{ row.DISCAGEM_REALIZADA | fmt_int }}</td>
+  {{ icm_cell(row.ICM_DISCAGEM) }}
+  <td>{{ row.META_ATENDIDA | fmt_int }}</td>
+  <td class="realizado">{{ row.ATENDIMENTO_REALIZADO | fmt_int }}</td>
+  {{ icm_cell(row.ICM_ATENDIDA) }}
+  <td>{{ row.META_CPCA | fmt_int }}</td>
+  <td class="realizado">{{ row.CPCA_REALIZADO | fmt_int }}</td>
+  {{ icm_cell(row.ICM_CPCA) }}
+  <td>{{ row.META_ACORDO | fmt_int }}</td>
+  <td class="realizado">{{ row.ACORDO_REALIZADO | fmt_int }}</td>
+  {{ icm_cell(row.ICM_ACORDO) }}
+  <td>{{ row.META_SALDO | fmt_money }}</td>
+  <td class="realizado">{{ row.SALDO_REALIZADO | fmt_money }}</td>
+  {{ icm_cell(row.ICM_SALDO) }}
+  <td>{{ row.TKM_ACORDO | fmt_money }}</td>
+</tr>
+{%- endmacro %}
+
+{% macro render_table(title, rows, mode) -%}
+<section class="section">
+  <div class="section-title">{{ title }}</div>
+  <table>
+    <colgroup>
+      <col class="phase">
+      <col class="range">
+      <col class="contracts">
+      <col class="balance">
+      <col class="tkm">
+      <col class="pct">
+      <col class="contracts">
+      <col class="contracts">
+      <col class="pct">
+      <col class="value">
+      <col class="value">
+      <col class="pct">
+      <col class="value">
+      <col class="value">
+      <col class="pct">
+      <col class="value">
+      <col class="value">
+      <col class="pct">
+      <col class="value">
+      <col class="value">
+      <col class="pct">
+      <col class="money">
+      <col class="money">
+      <col class="pct">
+      <col class="pct">
+    </colgroup>
+    <thead>
+      <tr class="group-row">
+        <th rowspan="2">Fase</th>
+        <th rowspan="2">Faixa Atraso</th>
+        <th colspan="3">Carteira</th>
+        <th colspan="4">Mailing</th>
+        <th colspan="3">Discagem</th>
+        <th colspan="3">Atendimento</th>
+        <th colspan="3">CPCa</th>
+        <th colspan="3">Acordos #</th>
+        <th colspan="4">Acordos R$</th>
+      </tr>
+      <tr class="sub-row">
+        <th>Contratos</th>
+        <th>Saldo R$</th>
+        <th>Tkm</th>
+        <th>% Elegivel</th>
+        <th>Mailing</th>
+        <th>Trabalhado</th>
+        <th>%</th>
+        <th>Meta</th>
+        <th>Realizado</th>
+        <th>% ICM</th>
+        <th>Meta</th>
+        <th>Realizado</th>
+        <th>% ICM</th>
+        <th>Meta</th>
+        <th>Realizado</th>
+        <th>% ICM</th>
+        <th>Meta</th>
+        <th>Realizado</th>
+        <th>% ICM</th>
+        <th>Meta</th>
+        <th>Realizado</th>
+        <th>% ICM</th>
+        <th>TKM</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if mode == "ct" %}
+        {% set fase1 = [] %}
+        {% set fase2 = [] %}
+        {% for r in rows %}
+          {% if r.FAIXA_ATRASO.startswith('01.') or r.FAIXA_ATRASO.startswith('02.') or r.FAIXA_ATRASO.startswith('03.') or r.FAIXA_ATRASO == 'TOTAL FASE 1' %}
+            {% set _ = fase1.append(r) %}
+          {% else %}
+            {% set _ = fase2.append(r) %}
+          {% endif %}
+        {% endfor %}
+
+        {% for row in fase1 %}
+          {{ data_row(row, "FASE 1", fase1|length, loop.first, "TOTAL" in row.FAIXA_ATRASO|upper) }}
+        {% endfor %}
+
+        {% for row in fase2 %}
+          {{ data_row(row, "FASE 2", fase2|length, loop.first, "TOTAL" in row.FAIXA_ATRASO|upper) }}
+        {% endfor %}
+
+        {{ data_row(total_fase_1_2, "TOTAL", 1, true, true) }}
+      {% else %}
+        {% for row in rows %}
+          {{ data_row(row, "EP", rows|length, loop.first, "TOTAL" in row.FAIXA_ATRASO|upper) }}
+        {% endfor %}
+      {% endif %}
+    </tbody>
+  </table>
+</section>
+{%- endmacro %}
+
+<div id="print-area">
+  <div class="report">
+    <div class="hero">
+      <div class="hero-title">META RELOGIO</div>
+      <div class="hero-side">
+        <img src="{{ logo_cobranca_url }}" alt="Grupo Cobranca">
+        <img src="{{ logo_bancoalfa_url }}" alt="Banco Alfa">
+      </div>
+    </div>
+
+    {{ render_table("Cartao", dados.get("CT", []), "ct") }}
+
+    {% if dados.get("EP") %}
+      {{ render_table("EP", dados.get("EP", []), "ep") }}
+    {% endif %}
+  </div>
+</div>
+</body>
+</html>

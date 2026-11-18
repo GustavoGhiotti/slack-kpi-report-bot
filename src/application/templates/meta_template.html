@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>META RELÓGIO</title>
+
+<style>
+/* ================= BASE ================= */
+body {
+  margin: 0;
+  padding: 6px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9px;
+  background: #ffffff;
+}
+
+#print-area {
+  width: fit-content;
+  margin: 0 auto;
+}
+
+/* ================= LAYOUT ================= */
+.layout {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: stretch;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  max-width: 120px;
+}
+
+/* ================= TÍTULO ================= */
+.titulo {
+  background: #000000;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+}
+
+/* ================= TABELA ================= */
+table {
+  width: auto;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* HEADER */
+th {
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  background: #ffffff;
+  border-bottom: 2px solid #ffe573;
+  border-right: none;
+}
+
+th:first-child {
+  background: #e6e6e6;
+}
+
+th:last-child {
+  background: #e6e6e6;
+}
+
+/* DADOS */
+td {
+  padding: 3px 4px;
+  text-align: center;
+  white-space: nowrap;
+  border-right: 1px solid #ffe573;
+}
+
+/* Remove bordas do segmento */
+th:first-child {
+  border-right: none;
+  border-bottom: none;
+}
+
+td.segmento {
+  border-right: none;
+}
+
+
+/* ICM */
+.icm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.icm .arrow {
+  width: 10px;
+}
+
+.icm .arrow.up::before {
+  content: "▲";
+  color: #1f8b4c;
+}
+
+.icm .arrow.down::before {
+  content: "▼";
+  color: #c0392b;
+}
+
+/* Remove última borda */
+th:last-child,
+td:last-child {
+  border-right: none;
+}
+
+th:last-child {
+  border-bottom: none;
+}
+
+/* Remove divisória antes do SEGMENTO à direita */
+th:nth-last-child(2),
+td:nth-last-child(2) {
+  border-right: none;
+}
+
+/* ================= CORES ================= */
+
+/* REALIZADO */
+th.realizado {
+  background: #ffffff;
+}
+
+td.realizado {
+  background: #ffe573;
+}
+
+/* Zebra */
+tr.zebra td {
+  background: #e2e2e2;
+}
+
+/* Mantém realizado amarelo no zebra */
+tr.zebra td.realizado {
+  background: #ffe573;
+}
+
+/* TOTAL */
+tr.total td {
+  background: #d1d1d1 !important;
+  font-weight: bold;
+}
+
+/* Segmentos */
+.segmento {
+  font-weight: bold;
+  vertical-align: middle;
+  background: #e6e6e6;
+}
+
+/* Faixa atraso */
+.faixa {
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="print-area">
+  <div class="layout">
+
+    <!-- LOGOS -->
+    <div class="side">
+      <img src="{{ logo_bancoalfa_url }}" class="logo" alt="Banco Alfa">
+      <img src="{{ logo_cobranca_url }}" class="logo" alt="Grupo Acme">
+    </div>
+
+    <!-- CONTEÚDO -->
+    <div>
+      <div class="titulo">META RELÓGIO</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>SEGMENTO</th>
+            <th>FAIXA_ATRASO</th>
+            <th>CONTRATOS</th>
+            <th>CARTEIRA</th>
+            <th>TICKET_MEDIO</th>
+            <th>MAILING</th>
+            <th>ELEGIVEL</th>
+            <th>TRABALHADO</th>
+            <th>PENETRACAO</th>
+
+            <th>META_DISCAGEM</th>
+            <th>ICM_DISCAGEM</th>
+            <th class="realizado">DISCAGEM_REALIZADA</th>
+
+            <th>META_ATENDIDA</th>
+            <th>ICM_ATENDIDA</th>
+            <th class="realizado">ATENDIMENTO_REALIZADO</th>
+
+            <th>META_CPCA</th>
+            <th>ICM_CPCA</th>
+            <th class="realizado">CPCA_REALIZADO</th>
+
+            <th>META_ACORDO</th>
+            <th>ICM_ACORDO</th>
+            <th class="realizado">ACORDO_REALIZADO</th>
+
+            <th>META_SALDO</th>
+            <th>ICM_SALDO</th>
+            <th class="realizado">SALDO_REALIZADO</th>
+
+            <th>CONVERSAO</th>
+            <th>SEGMENTO</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+        {# ===================== FASE 1 ===================== #}
+        {% set fase1 = [] %}
+        {% for r in dados.get('CT', []) %}
+          {% if r.FAIXA_ATRASO.startswith('01.')
+             or r.FAIXA_ATRASO.startswith('02.')
+             or r.FAIXA_ATRASO.startswith('03.')
+             or r.FAIXA_ATRASO == 'TOTAL FASE 1' %}
+            {% set _ = fase1.append(r) %}
+          {% endif %}
+        {% endfor %}
+
+        {% for row in fase1 %}
+        <tr class="{% if loop.index is even %}zebra{% endif %} {% if 'TOTAL' in row.FAIXA_ATRASO %}total{% endif %}">
+          {% if loop.first %}
+            <td class="segmento" rowspan="{{ fase1|length }}">FASE 1</td>
+          {% endif %}
+
+          <td class="faixa">{{ "TOTAL" if row.FAIXA_ATRASO.startswith("TOTAL FASE") else row.FAIXA_ATRASO }}</td>
+          <td>{{ row.CONTRATOS | fmt_int }}</td>
+          <td>{{ row.CARTEIRA | fmt_money }}</td>
+          <td>{{ row.TICKET_MEDIO | fmt_money }}</td>
+          <td>{{ row.MAILING | fmt_int }}</td>
+          <td>{{ row.ELEGIVEL | fmt_percent }}</td>
+          <td>{{ row.TRABALHADO | fmt_int }}</td>
+          <td>{{ row.PENETRACAO | fmt_percent }}</td>
+
+          <td>{{ row.META_DISCAGEM | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_DISCAGEM | icm_class }}"></span>{{ row.ICM_DISCAGEM | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.DISCAGEM_REALIZADA | fmt_int }}</td>
+
+          <td>{{ row.META_ATENDIDA | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_ATENDIDA | icm_class }}"></span>{{ row.ICM_ATENDIDA | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.ATENDIMENTO_REALIZADO | fmt_int }}</td>
+
+          <td>{{ row.META_CPCA | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_CPCA | icm_class }}"></span>{{ row.ICM_CPCA | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.CPCA_REALIZADO | fmt_int }}</td>
+
+          <td>{{ row.META_ACORDO | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_ACORDO | icm_class }}"></span>{{ row.ICM_ACORDO | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.ACORDO_REALIZADO | fmt_int }}</td>
+
+          <td>{{ row.META_SALDO | fmt_money }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_SALDO | icm_class }}"></span>{{ row.ICM_SALDO | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.SALDO_REALIZADO | fmt_money }}</td>
+
+          <td>{{ row.CONVERSAO | fmt_percent }}</td>
+
+          {% if loop.first %}
+            <td class="segmento" rowspan="{{ fase1|length }}">FIXA</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+
+        {# ===================== FASE 2 ===================== #}
+        {% set fase2 = [] %}
+        {% for r in dados.get('CT', []) %}
+          {% if r not in fase1 %}
+            {% set _ = fase2.append(r) %}
+          {% endif %}
+        {% endfor %}
+
+        {% for row in fase2 %}
+        <tr class="{% if loop.index is even %}zebra{% endif %} {% if 'TOTAL' in row.FAIXA_ATRASO %}total{% endif %}">
+          {% if loop.first %}
+            <td class="segmento" rowspan="{{ fase2|length }}">FASE 2</td>
+          {% endif %}
+
+          <td class="faixa">{{ "TOTAL" if row.FAIXA_ATRASO.startswith("TOTAL FASE") else row.FAIXA_ATRASO }}</td>
+          <td>{{ row.CONTRATOS | fmt_int }}</td>
+          <td>{{ row.CARTEIRA | fmt_money }}</td>
+          <td>{{ row.TICKET_MEDIO | fmt_money }}</td>
+          <td>{{ row.MAILING | fmt_int }}</td>
+          <td>{{ row.ELEGIVEL | fmt_percent }}</td>
+          <td>{{ row.TRABALHADO | fmt_int }}</td>
+          <td>{{ row.PENETRACAO | fmt_percent }}</td>
+
+          <td>{{ row.META_DISCAGEM | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_DISCAGEM | icm_class }}"></span>{{ row.ICM_DISCAGEM | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.DISCAGEM_REALIZADA | fmt_int }}</td>
+
+          <td>{{ row.META_ATENDIDA | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_ATENDIDA | icm_class }}"></span>{{ row.ICM_ATENDIDA | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.ATENDIMENTO_REALIZADO | fmt_int }}</td>
+
+          <td>{{ row.META_CPCA | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_CPCA | icm_class }}"></span>{{ row.ICM_CPCA | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.CPCA_REALIZADO | fmt_int }}</td>
+
+          <td>{{ row.META_ACORDO | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_ACORDO | icm_class }}"></span>{{ row.ICM_ACORDO | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.ACORDO_REALIZADO | fmt_int }}</td>
+
+          <td>{{ row.META_SALDO | fmt_money }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_SALDO | icm_class }}"></span>{{ row.ICM_SALDO | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.SALDO_REALIZADO | fmt_money }}</td>
+
+          <td>{{ row.CONVERSAO | fmt_percent }}</td>
+
+          {% if loop.first %}
+            <td class="segmento" rowspan="{{ fase2|length }}">VARIÁVEL</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+
+        {# ===================== EMPRÉSTIMO ===================== #}
+        {% if dados.get('EP') %}
+        {% for row in dados['EP'] %}
+        <tr class="{% if loop.index is even %}zebra{% endif %} {% if 'TOTAL' in row.FAIXA_ATRASO %}total{% endif %}">
+          {% if loop.first %}
+            <td class="segmento" rowspan="{{ dados['EP']|length }}">EMPRÉSTIMO</td>
+          {% endif %}
+
+          <td class="faixa">{{ "TOTAL" if row.FAIXA_ATRASO.startswith("TOTAL FASE") else row.FAIXA_ATRASO }}</td>
+          <td>{{ row.CONTRATOS | fmt_int }}</td>
+          <td>{{ row.CARTEIRA | fmt_money }}</td>
+          <td>{{ row.TICKET_MEDIO | fmt_money }}</td>
+          <td>{{ row.MAILING | fmt_int }}</td>
+          <td>{{ row.ELEGIVEL | fmt_percent }}</td>
+          <td>{{ row.TRABALHADO | fmt_int }}</td>
+          <td>{{ row.PENETRACAO | fmt_percent }}</td>
+
+          <td>{{ row.META_DISCAGEM | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_DISCAGEM | icm_class }}"></span>{{ row.ICM_DISCAGEM | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.DISCAGEM_REALIZADA | fmt_int }}</td>
+
+          <td>{{ row.META_ATENDIDA | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_ATENDIDA | icm_class }}"></span>{{ row.ICM_ATENDIDA | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.ATENDIMENTO_REALIZADO | fmt_int }}</td>
+
+          <td>{{ row.META_CPCA | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_CPCA | icm_class }}"></span>{{ row.ICM_CPCA | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.CPCA_REALIZADO | fmt_int }}</td>
+
+          <td>{{ row.META_ACORDO | fmt_int }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_ACORDO | icm_class }}"></span>{{ row.ICM_ACORDO | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.ACORDO_REALIZADO | fmt_int }}</td>
+
+          <td>{{ row.META_SALDO | fmt_money }}</td>
+          <td><div class="icm"><span class="arrow {{ row.ICM_SALDO | icm_class }}"></span>{{ row.ICM_SALDO | fmt_percent }}</div></td>
+          <td class="realizado">{{ row.SALDO_REALIZADO | fmt_money }}</td>
+
+          <td>{{ row.CONVERSAO | fmt_percent }}</td>
+
+          {% if loop.first %}
+            <td class="segmento" rowspan="{{ dados['EP']|length }}">EMPRÉSTIMO</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+        {% endif %}
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
